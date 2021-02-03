@@ -1,4 +1,4 @@
-import csv
+import json
 
 import requests
 from lxml import html
@@ -18,20 +18,24 @@ total_page = math.ceil(total_users / users_per_page)
 print(total_page)
 
 
-total_names = []
+total_players = []
+player_id = 1
 for i in range(total_page, 1, -1):
     url = base_url + "page=%d" % i
 
     r = requests.get(url)
     tree = html.fromstring(r.text)
     names = tree.xpath('''//tr[@class="ranking-table__row "]/td[2]//span/text()''')
-    total_names.extend(names)
+    mock_players = []
+    for name in names:
+        player_id += 1
+        mock_players.append({"id": player_id, "name": name})
+    total_players.extend(mock_players)
 
-    if len(total_names) > 5000:
+    if len(total_players) > 5000:
         break
 
-print(total_names)
+print(total_players)
 
-with open('usernames.csv', 'w', newline='') as file_usernames:
-    wr = csv.writer(file_usernames, quoting=csv.QUOTE_ALL)
-    wr.writerow(total_names)
+with open('mock-players.json', 'w', newline='') as f:
+    json.dump(total_players, f, sort_keys=True, indent=4, ensure_ascii=False)
